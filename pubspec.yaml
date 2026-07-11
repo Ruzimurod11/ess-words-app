@@ -1,0 +1,57 @@
+name: ess_words
+description: "Essential English Words — vocabulary learning app (Flutter port)."
+publish_to: "none"
+version: 1.0.0+1
+
+# Requires Flutter 3.27+ (Dart 3.6+) for the Color.withValues API.
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.1
+  dio: ^5.7.0
+  go_router: ^14.6.2
+  shared_preferences: ^2.3.3
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.3
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/i18n/uz.json
+    - assets/i18n/en.json
+    - assets/i18n/ru.json
+
+# App icon — generate with: dart run flutter_launcher_icons
+# (run AFTER `flutter create .`; writes into android/ and ios/)
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "assets/icon/icon_background.png"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+
+# Splash screen — generate with: dart run flutter_native_splash:create
+# (run AFTER `flutter create .`; writes into android/ and ios/)
+flutter_native_splash:
+  color: "#F6F7FD"
+  color_dark: "#0B0B15"
+  image: assets/splash/splash_logo.png
+  image_dark: assets/splash/splash_logo.png
+  android_12:
+    image: assets/splash/splash_logo.png
+    image_dark: assets/splash/splash_logo.png
+    color: "#F6F7FD"
+    color_dark: "#0B0B15"
+  android: true
+  ios: true
