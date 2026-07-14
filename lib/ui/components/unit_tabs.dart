@@ -25,46 +25,53 @@ class UnitTabs extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: c.border),
       ),
-      child: Wrap(
-        spacing: 4,
-        runSpacing: 4,
-        children: units.map((u) {
-          final active = u.id == activeUnitId;
-          return Tooltip(
-            message: '${u.title} — ${u.wordCount}',
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () => onSelect(u.id),
-                child: Container(
-                  constraints: const BoxConstraints(minWidth: 32),
-                  height: 30,
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const spacing = 4.0;
+          const columns = 6;
+          final itemWidth =
+              (constraints.maxWidth - spacing * (columns - 1)) / columns;
+          return Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
+            children: units.map((u) {
+              final active = u.id == activeUnitId;
+              return Tooltip(
+                message: '${u.title} — ${u.wordCount}',
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    gradient: active
-                        ? const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFF7C3AED)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                  ),
-                  child: Text(
-                    '${u.order}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: active ? Colors.white : c.mutedFg,
+                    onTap: () => onSelect(u.id),
+                    child: Container(
+                      width: itemWidth,
+                      height: 30,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        gradient: active
+                            ? const LinearGradient(
+                                colors: [Color(0xFF6366F1), Color(0xFF7C3AED)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                      ),
+                      child: Text(
+                        '${u.order}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: active ? Colors.white : c.mutedFg,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            }).toList(),
           );
-        }).toList(),
+        },
       ),
     );
   }
