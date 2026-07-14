@@ -18,3 +18,5 @@ pubspec.lock
 
 # OS
 .DS_Store
+
+.ai/

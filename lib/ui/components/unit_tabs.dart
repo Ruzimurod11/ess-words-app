@@ -19,15 +19,15 @@ class UnitTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.c;
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: c.border),
       ),
       child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
+        spacing: 4,
+        runSpacing: 4,
         children: units.map((u) {
           final active = u.id == activeUnitId;
           return Tooltip(
@@ -38,8 +38,9 @@ class UnitTabs extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 onTap: () => onSelect(u.id),
                 child: Container(
-                  constraints: const BoxConstraints(minWidth: 44),
-                  height: 36,
+                  constraints: const BoxConstraints(minWidth: 32),
+                  height: 30,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
@@ -54,7 +55,7 @@ class UnitTabs extends StatelessWidget {
                   child: Text(
                     '${u.order}',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: active ? Colors.white : c.mutedFg,
                     ),
