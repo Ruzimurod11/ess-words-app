@@ -8,7 +8,7 @@
 /// point at the deployed backend.
 const String kApiUrl = String.fromEnvironment(
   'API_URL',
-  defaultValue: 'https://backend-mibi.onrender.com',
+  defaultValue: 'https://word-learner-qbx2.vercel.app',
 );
 
 String get apiRoot {

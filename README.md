@@ -50,7 +50,7 @@ Standart qiymat `lib/core/config.dart` da: `http://10.0.2.2:3000`.
 
 - **Android emulyator** host mashinaning `localhost`iga `10.0.2.2` orqali murojaat qiladi.
 - **iOS simulyator** to'g'ridan-to'g'ri `localhost` ishlatadi.
-- Backend dev portingiz `3007` (fullstack-app/backend/.env), production esa Render'da.
+- Backend dev portingiz `3007` (fullstack-app/backend/.env), production esa Vercel'da.
 
 URL'ni build/run paytida override qiling:
 
@@ -62,7 +62,7 @@ flutter run --dart-define=API_URL=http://10.0.2.2:3007
 flutter run --dart-define=API_URL=http://localhost:3007
 
 # Production backend:
-flutter run --dart-define=API_URL=https://backend-mibi.onrender.com
+flutter run --dart-define=API_URL=https://word-learner-qbx2.vercel.app
 ```
 
 ## HTTP cleartext (Android)
