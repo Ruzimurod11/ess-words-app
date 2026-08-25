@@ -8,6 +8,7 @@ import '../../state/app_state.dart';
 import '../../state/data.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/audio_button.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/loader.dart';
 
@@ -26,6 +27,7 @@ class _WordsTableState extends ConsumerState<WordsTable> {
   final _english = TextEditingController();
   final _translation = TextEditingController();
   final _transcription = TextEditingController();
+  String? _partOfSpeech;
   bool _saving = false;
 
   @override
@@ -40,6 +42,7 @@ class _WordsTableState extends ConsumerState<WordsTable> {
     _english.text = w.english;
     _translation.text = w.translation;
     _transcription.text = w.transcription ?? '';
+    _partOfSpeech = w.partOfSpeech;
     setState(() => _editingId = w.id);
   }
 
@@ -54,6 +57,7 @@ class _WordsTableState extends ConsumerState<WordsTable> {
         'transcription': _transcription.text.trim().isEmpty
             ? null
             : _transcription.text.trim(),
+        'partOfSpeech': _partOfSpeech,
       });
       setState(() => _editingId = null);
       invalidateWords(ref, widget.unitId);
@@ -248,12 +252,28 @@ class _WordsTableState extends ConsumerState<WordsTable> {
                         style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w500)),
                   ),
+                  if (w.partOfSpeech != null &&
+                      w.partOfSpeech!.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Text('${w.partOfSpeech}.',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: c.mutedFg)),
+                  ],
                   if (w.transcription != null &&
                       w.transcription!.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text('[${w.transcription}]',
                           style: TextStyle(fontSize: 15, color: c.mutedFg)),
+                    ),
+                  ],
+                  if (w.audioUrl != null && w.audioUrl!.isNotEmpty) ...[
+                    const SizedBox(width: 4),
+                    AudioButton(
+                      url: w.audioUrl!,
+                      tooltip: ref.trs('words_table.audio_aria'),
                     ),
                   ],
                 ],
@@ -276,6 +296,12 @@ class _WordsTableState extends ConsumerState<WordsTable> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AppTextField(controller: _english, hint: 'english'),
+        const SizedBox(height: 6),
+        _PartOfSpeechSelect(
+          value: _partOfSpeech,
+          label: ref.trs('words_table.header_part_of_speech'),
+          onChanged: (v) => setState(() => _partOfSpeech = v),
+        ),
         const SizedBox(height: 6),
         AppTextField(controller: _transcription, hint: 'transcription'),
         const SizedBox(height: 6),
@@ -312,6 +338,55 @@ class _WordsTableState extends ConsumerState<WordsTable> {
       icon: Icon(icon, size: 18, color: color),
       onPressed: onTap,
       visualDensity: VisualDensity.compact,
+    );
+  }
+}
+
+/// Part-of-speech picker for the inline edit row; `null` means "not set" (—).
+class _PartOfSpeechSelect extends StatelessWidget {
+  final String? value;
+  final String label;
+  final ValueChanged<String?> onChanged;
+  const _PartOfSpeechSelect({
+    required this.value,
+    required this.label,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    return PopupMenuButton<String>(
+      tooltip: label,
+      color: c.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: c.border),
+      ),
+      onSelected: (v) => onChanged(v.isEmpty ? null : v),
+      itemBuilder: (ctx) => [
+        const PopupMenuItem(value: '', child: Text('—')),
+        ...kPartsOfSpeech
+            .map((p) => PopupMenuItem(value: p, child: Text(p))),
+      ],
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: c.input),
+        ),
+        child: Row(
+          children: [
+            Text(label,
+                style: TextStyle(fontSize: 14, color: c.mutedFg)),
+            const Spacer(),
+            Text(value ?? '—', style: const TextStyle(fontSize: 14)),
+            Icon(Icons.keyboard_arrow_down, size: 16, color: c.mutedFg),
+          ],
+        ),
+      ),
     );
   }
 }

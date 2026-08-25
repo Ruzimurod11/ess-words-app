@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../api/api.dart' as api;
 import '../models/book.dart';
+import '../models/profile.dart';
 import '../models/word.dart';
+import 'app_state.dart';
 
 /// Data providers mirror the web app's TanStack Query keys. They are kept
 /// alive (not autoDispose) so results cache across navigation; mutations call
@@ -29,6 +31,15 @@ final searchProvider =
     FutureProvider.family<PaginatedSearchWords, SearchArgs>(
   (ref, a) => api.searchWords(a.q, page: a.page, pageSize: a.pageSize),
 );
+
+/// Admin-only; the header avatar and the profile screen share this one entry.
+/// Watching the token refetches on sign-in/out — otherwise a failure while
+/// offline (or under a stale token) would be cached for the rest of the
+/// session, with nothing to retry it.
+final profileProvider = FutureProvider<Profile>((ref) {
+  ref.watch(authProvider);
+  return api.getProfile();
+});
 
 /// Invalidate everything touched by a word create/update/delete/reorder.
 void invalidateWords(WidgetRef ref, int unitId) {

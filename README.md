@@ -35,8 +35,8 @@ and reproduces its design tokens, so both clients stay visually and behaviourall
 | **Library** | Books grid → unit tabs → paginated word list. |
 | **Vocabulary** | A personal, user-owned book; new words are auto-assigned to a unit by the backend. |
 | **Search** | Global paginated search, with book/unit provenance on every hit. |
-| **Quiz** | Two modes (`topic`, `general`), two levels (`easy` multiple-choice, `hard` free-text), three general-mode scopes (`all`, `half`, `full`), switchable direction (UZ↔EN), IPA transcriptions, streak/tier cheers, and a result screen listing the missed words. |
-| **Admin** | Password login, word create/edit/delete, drag-to-reorder within a unit, transcription backfill. |
+| **Quiz** | Two modes (`topic`, `general`), two levels (`easy` multiple-choice, `hard` free-text), three general-mode scopes (`all`, `half`, `full`), switchable direction (UZ↔EN), IPA transcriptions, parts of speech, streak/tier cheers, and a result screen listing the missed words. |
+| **Admin** | Password login, word create/edit/delete, drag-to-reorder within a unit, transcription and part-of-speech backfill. |
 | **i18n** | Uzbek, English, Russian — the same JSON bundles the web app ships. |
 | **Theming** | Light/dark, driven by design tokens ported from the web Tailwind theme. |
 
@@ -210,8 +210,9 @@ clears the stored token and returns the app to read-only mode.
 | `PUT` | `/words/:id` | Update a word *(admin)* |
 | `DELETE` | `/words/:id` | Delete a word *(admin)* |
 | `GET` | `/words/search` | Global search (`q`, `page`, `pageSize`) |
-| `GET` | `/words/quiz` | Questions + IPA map (`unitId` \| `fromUnitId`/`toUnitId`, `count`, `direction`, `level`) |
+| `GET` | `/words/quiz` | Questions + IPA / part-of-speech maps (`unitId` \| `fromUnitId`/`toUnitId`, `count`, `direction`, `level`) |
 | `POST` | `/words/backfill-transcriptions` | Fill missing IPA transcriptions *(admin)* |
+| `POST` | `/words/backfill-parts-of-speech` | Fill missing parts of speech *(admin)* |
 
 Null query parameters are stripped before the request is sent, so optional quiz filters can
 be passed unconditionally.
@@ -252,7 +253,7 @@ for colour. `ThemeController` persists the choice and defaults to light.
 
 Admin affordances are gated on `isAdminProvider`, derived from the presence of a stored
 token. Logging in (header → lock icon) enables inline editing, deletion, drag handles in the
-words table, and the transcription backfill action.
+words table, and the transcription / part-of-speech backfill actions.
 
 This is presentation-level gating only: the backend validates every mutating request, and a
 `401` reverts the client to read-only automatically.

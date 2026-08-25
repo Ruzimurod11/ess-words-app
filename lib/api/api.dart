@@ -1,5 +1,6 @@
 import '../core/api_client.dart';
 import '../models/book.dart';
+import '../models/profile.dart';
 import '../models/quiz.dart';
 import '../models/word.dart';
 
@@ -10,6 +11,20 @@ Future<String> login(String password) => _c.post<String>(
       '/auth/login',
       (d) => (d as Map)['token'] as String,
       body: {'password': password},
+    );
+
+// ----- profile (admin only) -----
+Future<Profile> getProfile() => _c.get<Profile>(
+      '/profile',
+      (d) => Profile.fromJson(d as Map<String, dynamic>),
+    );
+
+/// Omitted keys are left untouched by the backend; an explicit `null` clears
+/// the field — so the caller sends only what it means to change.
+Future<Profile> updateProfile(Map<String, dynamic> data) => _c.put<Profile>(
+      '/profile',
+      (d) => Profile.fromJson(d as Map<String, dynamic>),
+      body: data,
     );
 
 // ----- books -----
@@ -124,11 +139,27 @@ class BackfillResult {
 
 Future<BackfillResult> backfillTranscriptions() => _c.post<BackfillResult>(
       '/words/backfill-transcriptions',
-      (d) {
-        final m = d as Map<String, dynamic>;
-        return BackfillResult(
-          (m['updated'] ?? 0) as int,
-          (m['remaining'] ?? 0) as int,
-        );
-      },
+      _backfillResult,
     );
+
+Future<BackfillResult> backfillPartsOfSpeech() => _c.post<BackfillResult>(
+      '/words/backfill-parts-of-speech',
+      _backfillResult,
+    );
+
+/// Generates missing pronunciations via Google TTS. The backend caps the work
+/// per call, so the caller repeats until `remaining` hits zero.
+Future<BackfillResult> backfillAudioWithGoogleTts(int limit) =>
+    _c.post<BackfillResult>(
+      '/words/backfill-audio-google-tts',
+      _backfillResult,
+      body: {'limit': limit},
+    );
+
+BackfillResult _backfillResult(dynamic d) {
+  final m = d as Map<String, dynamic>;
+  return BackfillResult(
+    (m['updated'] ?? 0) as int,
+    (m['remaining'] ?? 0) as int,
+  );
+}

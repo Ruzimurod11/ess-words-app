@@ -55,6 +55,7 @@
   "words_table": {
     "header_num": "#",
     "header_english": "Английский",
+    "header_part_of_speech": "Часть речи",
     "header_transcription": "Транскрипция",
     "header_translation": "Перевод",
     "header_actions": "Действие",
@@ -65,7 +66,8 @@
     "delete_title": "Удалить слово",
     "delete_confirm_prefix": "Вы уверены, что хотите удалить",
     "delete_confirm_suffix": "? Это действие нельзя отменить.",
-    "delete_button": "Да, удалить"
+    "delete_button": "Да, удалить",
+    "audio_aria": "Слушать произношение"
   },
   "search": {
     "placeholder": "Поиск...",
@@ -80,6 +82,7 @@
     "no_results_suffix": ".",
     "col_location": "Расположение",
     "col_english": "Английский",
+    "col_part_of_speech": "Часть речи",
     "col_transcription": "Транскрипция",
     "col_translation": "Перевод",
     "col_actions": "Действие",
@@ -100,6 +103,11 @@
     "hide_password": "Скрыть пароль",
     "submit": "Войти",
     "submitting": "Вход..."
+  },
+  "part_of_speech": {
+    "button": "Добавить части речи",
+    "pending": "Определение...",
+    "success": "Части речи добавлены к {{updated}} словам (осталось {{remaining}})"
   },
   "transcription": {
     "button": "Добавить транскрипции",
@@ -297,5 +305,27 @@
         "message": "Не сдавайтесь! Каждый чемпион начинал именно отсюда. Попробуйте ещё раз — результат вас поразит!"
       }
     }
+  },
+  "admin_tools": {
+    "label": "Инструменты администратора"
+  },
+  "google_tts": {
+    "button": "Генерировать произношение",
+    "success": "Произношение сгенерировано для {{updated}} слов (осталось {{remaining}})"
+  },
+  "profile": {
+    "title": "Профиль",
+    "subtitle": "Профиль администратора — фото и имя",
+    "admin_required": "Войдите как администратор, чтобы открыть эту страницу",
+    "upload": "Загрузить фото",
+    "remove_photo": "Удалить фото",
+    "image_hint": "PNG или JPG, до 5 МБ. Изображение уменьшается до 256×256.",
+    "display_name": "Имя",
+    "display_name_placeholder": "Ваше имя",
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "saved": "Сохранено",
+    "invalid_image": "Не удалось прочитать изображение. Выберите другой файл.",
+    "image_too_large": "Изображение слишком большое (до 5 МБ)"
   }
 }

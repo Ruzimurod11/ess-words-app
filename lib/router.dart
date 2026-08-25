@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'ui/app_shell.dart';
 import 'ui/screens/book_screen.dart';
 import 'ui/screens/home_screen.dart';
+import 'ui/screens/profile_screen.dart';
 import 'ui/screens/search_screen.dart';
 import 'ui/screens/test/test_screen.dart';
 import 'ui/screens/vocabulary_screen.dart';
@@ -29,6 +30,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (c, s) => NoTransitionPage(
               child: SearchScreen(query: s.uri.queryParameters['q'] ?? ''),
             ),
+          ),
+          GoRoute(
+            path: '/profile',
+            pageBuilder: (c, s) =>
+                const NoTransitionPage(child: ProfileScreen()),
           ),
           GoRoute(
             path: '/vocabulary',

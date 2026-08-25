@@ -55,6 +55,7 @@
   "words_table": {
     "header_num": "#",
     "header_english": "English",
+    "header_part_of_speech": "Turkum",
     "header_transcription": "Transkripsiya",
     "header_translation": "Tarjima",
     "header_actions": "Amal",
@@ -65,7 +66,8 @@
     "delete_title": "So'zni o'chirish",
     "delete_confirm_prefix": "",
     "delete_confirm_suffix": "so'zini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
-    "delete_button": "Ha, o'chirish"
+    "delete_button": "Ha, o'chirish",
+    "audio_aria": "Talaffuzni tinglash"
   },
   "search": {
     "placeholder": "Qidirish...",
@@ -80,6 +82,7 @@
     "no_results_suffix": "bo'yicha hech narsa topilmadi.",
     "col_location": "Joylashuv",
     "col_english": "English",
+    "col_part_of_speech": "Turkum",
     "col_transcription": "Transkripsiya",
     "col_translation": "Tarjima",
     "col_actions": "Amal",
@@ -100,6 +103,11 @@
     "hide_password": "Parolni yashirish",
     "submit": "Kirish",
     "submitting": "Kirilmoqda..."
+  },
+  "part_of_speech": {
+    "button": "Turkum qo'shish",
+    "pending": "Aniqlanmoqda...",
+    "success": "{{updated}} ta so'zga turkum qo'shildi ({{remaining}} ta qoldi)"
   },
   "transcription": {
     "button": "Transkripsiya qo'shish",
@@ -297,5 +305,27 @@
         "message": "Taslim bo'lmang! Har bir chempion aynan shu nuqtadan boshlagan. Yana bir bor urinib ko'ring — natija sizni hayratda qoldiradi!"
       }
     }
+  },
+  "admin_tools": {
+    "label": "Admin asboblari"
+  },
+  "google_tts": {
+    "button": "Talaffuz yaratish",
+    "success": "{{updated}} ta so'z uchun talaffuz yaratildi ({{remaining}} ta qoldi)"
+  },
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Admin profili — rasm va ism",
+    "admin_required": "Bu sahifa uchun admin sifatida kirish kerak",
+    "upload": "Rasm yuklash",
+    "remove_photo": "Rasmni o'chirish",
+    "image_hint": "PNG yoki JPG, 5 MB gacha. Rasm 256×256 ga kichraytiriladi.",
+    "display_name": "Ism",
+    "display_name_placeholder": "Ismingiz",
+    "save": "Saqlash",
+    "saving": "Saqlanmoqda...",
+    "saved": "Saqlandi",
+    "invalid_image": "Rasmni o'qib bo'lmadi. Boshqa fayl tanlang.",
+    "image_too_large": "Rasm juda katta (5 MB gacha bo'lishi kerak)"
   }
 }

@@ -212,6 +212,7 @@ class AppTextField extends StatelessWidget {
   final Widget? suffix;
   final TextAlign textAlign;
   final Color? ringColor;
+  final int? maxLength;
   const AppTextField({
     super.key,
     this.controller,
@@ -225,6 +226,7 @@ class AppTextField extends StatelessWidget {
     this.suffix,
     this.textAlign = TextAlign.start,
     this.ringColor,
+    this.maxLength,
   });
 
   @override
@@ -239,9 +241,11 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       textAlign: textAlign,
+      maxLength: maxLength,
       style: TextStyle(color: c.foreground, fontSize: 14),
       decoration: InputDecoration(
         isDense: true,
+        counterText: '',
         filled: true,
         fillColor: c.card,
         hintText: hint,

@@ -38,8 +38,14 @@ class QuizResponse {
   final List<QuizQuestion> questions;
   // lowercase english word -> IPA transcription
   final Map<String, String> transcriptions;
+  // lowercase english word -> part of speech
+  final Map<String, String> partsOfSpeech;
 
-  const QuizResponse({required this.questions, required this.transcriptions});
+  const QuizResponse({
+    required this.questions,
+    required this.transcriptions,
+    required this.partsOfSpeech,
+  });
 
   factory QuizResponse.fromJson(Map<String, dynamic> j) => QuizResponse(
         questions: ((j['questions'] ?? []) as List)
@@ -47,6 +53,10 @@ class QuizResponse {
             .toList(),
         transcriptions:
             ((j['transcriptions'] ?? <String, dynamic>{}) as Map).map(
+          (k, v) => MapEntry(k as String, v as String),
+        ),
+        partsOfSpeech:
+            ((j['partsOfSpeech'] ?? <String, dynamic>{}) as Map).map(
           (k, v) => MapEntry(k as String, v as String),
         ),
       );

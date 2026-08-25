@@ -1,3 +1,19 @@
+/// Part-of-speech abbreviations (same list as the backend's PARTS_OF_SPEECH).
+const List<String> kPartsOfSpeech = [
+  'v',
+  'n',
+  'adj',
+  'adv',
+  'prep',
+  'conj',
+  'pron',
+  'det',
+  'article',
+  'interj',
+  'num',
+  'phr',
+];
+
 class Word {
   final int id;
   final int unitId;
@@ -5,6 +21,8 @@ class Word {
   final String english;
   final String translation;
   final String? transcription;
+  final String? partOfSpeech;
+  final String? audioUrl;
   final String createdAt;
   final String updatedAt;
 
@@ -15,6 +33,8 @@ class Word {
     required this.english,
     required this.translation,
     required this.transcription,
+    required this.partOfSpeech,
+    required this.audioUrl,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -26,6 +46,8 @@ class Word {
         english: j['english'] as String,
         translation: j['translation'] as String,
         transcription: j['transcription'] as String?,
+        partOfSpeech: j['partOfSpeech'] as String?,
+        audioUrl: j['audioUrl'] as String?,
         createdAt: (j['createdAt'] ?? '') as String,
         updatedAt: (j['updatedAt'] ?? '') as String,
       );
@@ -37,6 +59,8 @@ class Word {
         english: english,
         translation: translation,
         transcription: transcription,
+        partOfSpeech: partOfSpeech,
+        audioUrl: audioUrl,
         createdAt: createdAt,
         updatedAt: updatedAt,
       );
@@ -82,6 +106,8 @@ class SearchWord extends Word {
     required super.english,
     required super.translation,
     required super.transcription,
+    required super.partOfSpeech,
+    required super.audioUrl,
     required super.createdAt,
     required super.updatedAt,
     required this.bookId,
@@ -98,6 +124,8 @@ class SearchWord extends Word {
         english: j['english'] as String,
         translation: j['translation'] as String,
         transcription: j['transcription'] as String?,
+        partOfSpeech: j['partOfSpeech'] as String?,
+        audioUrl: j['audioUrl'] as String?,
         createdAt: (j['createdAt'] ?? '') as String,
         updatedAt: (j['updatedAt'] ?? '') as String,
         bookId: j['bookId'] as int,

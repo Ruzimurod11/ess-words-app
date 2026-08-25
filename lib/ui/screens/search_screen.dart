@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../state/app_state.dart';
 import '../../state/data.dart';
 import '../theme.dart';
+import '../widgets/audio_button.dart';
 import '../widgets/common.dart';
 import '../widgets/loader.dart';
 
@@ -187,11 +188,28 @@ class _SearchRow extends ConsumerWidget {
                           style: const TextStyle(
                               fontSize: 17, fontWeight: FontWeight.w500)),
                     ),
+                    if (item.partOfSpeech != null &&
+                        (item.partOfSpeech as String).isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Text('${item.partOfSpeech}.',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontStyle: FontStyle.italic,
+                              color: c.mutedFg)),
+                    ],
                     if (item.transcription != null &&
                         (item.transcription as String).isNotEmpty) ...[
                       const SizedBox(width: 8),
                       Text('[${item.transcription}]',
                           style: TextStyle(fontSize: 15, color: c.mutedFg)),
+                    ],
+                    if (item.audioUrl != null &&
+                        (item.audioUrl as String).isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      AudioButton(
+                        url: item.audioUrl!,
+                        tooltip: ref.tr('words_table.audio_aria'),
+                      ),
                     ],
                   ],
                 ),

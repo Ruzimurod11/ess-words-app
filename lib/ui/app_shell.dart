@@ -62,7 +62,7 @@ class AppShell extends ConsumerWidget {
           ),
         ),
         actions: const [
-          TranscriptionBackfillButton(),
+          AdminToolsButton(),
           SizedBox(width: 6),
           LanguageButton(),
           SizedBox(width: 6),

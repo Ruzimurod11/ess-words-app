@@ -55,6 +55,7 @@
   "words_table": {
     "header_num": "#",
     "header_english": "English",
+    "header_part_of_speech": "Part of speech",
     "header_transcription": "Transcription",
     "header_translation": "Translation",
     "header_actions": "Actions",
@@ -65,7 +66,8 @@
     "delete_title": "Delete word",
     "delete_confirm_prefix": "Are you sure you want to delete",
     "delete_confirm_suffix": "? This action cannot be undone.",
-    "delete_button": "Yes, delete"
+    "delete_button": "Yes, delete",
+    "audio_aria": "Listen to pronunciation"
   },
   "search": {
     "placeholder": "Search...",
@@ -80,6 +82,7 @@
     "no_results_suffix": ".",
     "col_location": "Location",
     "col_english": "English",
+    "col_part_of_speech": "Part of speech",
     "col_transcription": "Transcription",
     "col_translation": "Translation",
     "col_actions": "Actions",
@@ -100,6 +103,11 @@
     "hide_password": "Hide password",
     "submit": "Log in",
     "submitting": "Logging in..."
+  },
+  "part_of_speech": {
+    "button": "Add parts of speech",
+    "pending": "Detecting...",
+    "success": "Added parts of speech to {{updated}} words ({{remaining}} remaining)"
   },
   "transcription": {
     "button": "Add transcriptions",
@@ -297,5 +305,27 @@
         "message": "Don't give up! Every champion started right here. Try again — the result will amaze you!"
       }
     }
+  },
+  "admin_tools": {
+    "label": "Admin tools"
+  },
+  "google_tts": {
+    "button": "Generate pronunciation",
+    "success": "Generated pronunciation for {{updated}} words ({{remaining}} remaining)"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Admin profile — photo and name",
+    "admin_required": "Sign in as admin to view this page",
+    "upload": "Upload photo",
+    "remove_photo": "Remove photo",
+    "image_hint": "PNG or JPG, up to 5 MB. The image is resized to 256×256.",
+    "display_name": "Name",
+    "display_name_placeholder": "Your name",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "invalid_image": "Could not read the image. Pick another file.",
+    "image_too_large": "Image is too large (max 5 MB)"
   }
 }

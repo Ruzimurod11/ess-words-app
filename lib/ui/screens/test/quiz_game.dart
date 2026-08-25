@@ -237,6 +237,10 @@ class _QuizGameState extends ConsumerState<QuizGame> {
   String? _transcriptionFor(QuizResponse data, String text) =>
       data.transcriptions[text.trim().toLowerCase()];
 
+  // same coverage as the transcriptions map: english text only
+  String? _partOfSpeechFor(QuizResponse data, String text) =>
+      data.partsOfSpeech[text.trim().toLowerCase()];
+
   Widget _question(QuizResponse data) {
     final c = context.c;
     final question = data.questions[_index];
@@ -245,6 +249,7 @@ class _QuizGameState extends ConsumerState<QuizGame> {
         _selected != null && isAnswerCorrect(_selected!, question.correct);
     final cheer = answered ? getQuizCheer(_answers) : null;
     final qTrans = _transcriptionFor(data, question.question);
+    final qPos = _partOfSpeechFor(data, question.question);
 
     return Stack(
       children: [
@@ -301,9 +306,20 @@ class _QuizGameState extends ConsumerState<QuizGame> {
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                               fontSize: 32, fontWeight: FontWeight.bold)),
-                      if (qTrans != null)
-                        Text('[$qTrans]',
-                            style: TextStyle(fontSize: 14, color: c.mutedFg)),
+                      if (qPos != null || qTrans != null)
+                        Text.rich(
+                          TextSpan(children: [
+                            if (qPos != null)
+                              TextSpan(
+                                  text: '$qPos.',
+                                  style: const TextStyle(
+                                      fontStyle: FontStyle.italic)),
+                            if (qPos != null && qTrans != null)
+                              const TextSpan(text: '  '),
+                            if (qTrans != null) TextSpan(text: '[$qTrans]'),
+                          ]),
+                          style: TextStyle(fontSize: 14, color: c.mutedFg),
+                        ),
                     ],
                   ),
                 ),
@@ -344,6 +360,7 @@ class _QuizGameState extends ConsumerState<QuizGame> {
     return Column(
       children: question.options.map((option) {
         final trans = _transcriptionFor(data, option);
+        final pos = _partOfSpeechFor(data, option);
         Color bg = c.card;
         Color fg = c.foreground;
         Color border = c.border;
@@ -385,8 +402,16 @@ class _QuizGameState extends ConsumerState<QuizGame> {
                               fontWeight: FontWeight.w600,
                               color: fg)),
                     ),
+                    if (pos != null) ...[
+                      const SizedBox(width: 8),
+                      Text('$pos.',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontStyle: FontStyle.italic,
+                              color: fg.withValues(alpha: 0.8))),
+                    ],
                     if (trans != null) ...[
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Text('[$trans]',
                           style: TextStyle(
                               fontSize: 14,
@@ -406,6 +431,7 @@ class _QuizGameState extends ConsumerState<QuizGame> {
       QuizResponse data) {
     final c = context.c;
     final correctTrans = _transcriptionFor(data, question.correct);
+    final correctPos = _partOfSpeechFor(data, question.correct);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -438,6 +464,7 @@ class _QuizGameState extends ConsumerState<QuizGame> {
             ),
             child: Text(
               '${ref.trs('test.correct_answer')}: ${question.correct}'
+              '${correctPos != null ? '  $correctPos.' : ''}'
               '${correctTrans != null ? '  [$correctTrans]' : ''}',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -550,7 +577,7 @@ class _QuizGameState extends ConsumerState<QuizGame> {
                   Divider(height: 1, color: c.border),
                   for (var i = 0; i < score.wrong.length; i++) ...[
                     if (i > 0) Divider(height: 1, color: c.border),
-                    _wrongRow(score.wrong[i]),
+                    _wrongRow(score.wrong[i], data),
                   ],
                 ],
               ),
@@ -602,18 +629,28 @@ class _QuizGameState extends ConsumerState<QuizGame> {
     );
   }
 
-  Widget _wrongRow(Answer a) {
+  Widget _wrongRow(Answer a, QuizResponse data) {
+    // ' adj.' suffix when the text is the english side of the pair
+    String posSuffix(String text) {
+      final pos = _partOfSpeechFor(data, text);
+      return pos == null ? '' : '  $pos.';
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(a.question.question,
+          Text('${a.question.question}${posSuffix(a.question.question)}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           const SizedBox(height: 2),
-          Text('${ref.trs('test.your_answer')}: ${a.selected}',
+          Text(
+              '${ref.trs('test.your_answer')}: ${a.selected}'
+              '${posSuffix(a.selected)}',
               style: const TextStyle(fontSize: 16, color: Color(0xFFEF4444))),
-          Text('${ref.trs('test.correct_answer')}: ${a.question.correct}',
+          Text(
+              '${ref.trs('test.correct_answer')}: ${a.question.correct}'
+              '${posSuffix(a.question.correct)}',
               style: const TextStyle(fontSize: 16, color: Color(0xFF16A34A))),
         ],
       ),
