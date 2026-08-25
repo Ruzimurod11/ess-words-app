@@ -4,6 +4,12 @@ const int kMinCount = 20;
 const int kStreakCheerVariants = 16;
 const int kStreakCheerMin = 3;
 
+/// Full-screen fireworks + confetti on every 5th consecutive correct answer.
+const int kFireworksStreak = 5;
+
+bool shouldShowFireworks(int streak) =>
+    streak > 0 && streak % kFireworksStreak == 0;
+
 const Map<String, int> kCheerTierVariants = {
   'hot': 25,
   'good': 25,

@@ -13,6 +13,7 @@ import '../../../state/data.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
 import '../../widgets/loader.dart';
+import 'celebration.dart';
 
 const _feedbackStyles = {
   'perfect': ('👑', [Color(0xFFF59E0B), Color(0xFFEAB308)]),
@@ -62,9 +63,13 @@ class _QuizGameState extends ConsumerState<QuizGame> {
   double _cheerSeed = 0;
   QuizDirection _direction = QuizDirection.uzEn;
   int? _count;
+  // unit testida chegara — shu unitdagi so'zlar soni; null: hali yuklanmagan
+  int? _unitMaxCount;
   final _countController = TextEditingController(text: '$kMinCount');
   Future<QuizResponse>? _future;
   Timer? _advanceTimer;
+  OverlayEntry? _celebrationEntry;
+  Timer? _celebrationTimer;
 
   bool get _hard => widget.level == QuizLevel.hard;
 
@@ -72,12 +77,43 @@ class _QuizGameState extends ConsumerState<QuizGame> {
   void initState() {
     super.initState();
     _count = widget.selectableCount ? null : kMinCount;
-    if (_count != null) _load();
+    if (_count != null) {
+      _load();
+    } else if (widget.unitId != null) {
+      _loadUnitMax();
+    }
+  }
+
+  /// Unit testida chegara ham, boshlang'ich qiymat ham — unitdagi barcha
+  /// so'zlar. So'z soni kMinCount dan oshmasa tanlaydigan narsa yo'q, test
+  /// darhol boshlanadi.
+  Future<void> _loadUnitMax() async {
+    try {
+      final res = await api.getUnitWords(widget.unitId!, page: 1, pageSize: 1);
+      if (!mounted) return;
+      setState(() {
+        _unitMaxCount = res.total;
+        if (res.total <= kMinCount) {
+          _count = res.total > 0 ? res.total : kMinCount;
+          _load();
+        } else {
+          _countController.text = '${res.total}';
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _count = kMinCount;
+        _load();
+      });
+    }
   }
 
   @override
   void dispose() {
     _advanceTimer?.cancel();
+    _celebrationTimer?.cancel();
+    _removeCelebration();
     _typedController.dispose();
     _countController.dispose();
     super.dispose();
@@ -118,13 +154,33 @@ class _QuizGameState extends ConsumerState<QuizGame> {
 
   void _onSelect(QuizQuestion question, String option) {
     if (_selected != null) return;
+    final next = [..._answers, Answer(question, option)];
     setState(() {
       _selected = option;
       _cheerSeed = _rng.nextDouble();
-      _answers = [..._answers, Answer(question, option)];
+      _answers = next;
     });
+    if (shouldShowFireworks(getTrailingStreak(next))) _celebrate();
     _advanceTimer?.cancel();
     _advanceTimer = Timer(const Duration(seconds: 1), _next);
+  }
+
+  /// Effekt butun ekranni qamrashi va keyingi savolga o'tishdan uzunroq
+  /// yashashi kerak — shuning uchun Overlay'ga qo'yiladi.
+  void _celebrate() {
+    _celebrationTimer?.cancel();
+    _removeCelebration();
+    final entry = OverlayEntry(
+      builder: (_) => const Positioned.fill(child: Celebration()),
+    );
+    _celebrationEntry = entry;
+    Overlay.of(context).insert(entry);
+    _celebrationTimer = Timer(kCelebrationDuration, _removeCelebration);
+  }
+
+  void _removeCelebration() {
+    if (_celebrationEntry?.mounted ?? false) _celebrationEntry!.remove();
+    _celebrationEntry = null;
   }
 
   void _next() {
@@ -173,9 +229,15 @@ class _QuizGameState extends ConsumerState<QuizGame> {
 
   // ---------- count picker ----------
   Widget _countPicker() {
-    final books = ref.watch(booksProvider).valueOrNull;
-    final maxCount =
-        books?.fold<int>(0, (acc, b) => acc + b.wordCount);
+    final int? maxCount;
+    if (widget.unitId != null) {
+      maxCount = _unitMaxCount;
+    } else {
+      final books = ref.watch(booksProvider).valueOrNull;
+      maxCount = books?.fold<int>(0, (acc, b) => acc + b.wordCount);
+    }
+    // chegara yuklanmaguncha forma ko'rsatilmaydi
+    if (maxCount == null) return const Loader();
     final valid = isValidQuizCount(_countController.text, maxCount);
     return Center(
       child: ConstrainedBox(
@@ -199,13 +261,11 @@ class _QuizGameState extends ConsumerState<QuizGame> {
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 8),
-                  if (maxCount != null)
-                    Text(
-                      ref.trs('test.question_count_hint',
-                          {'min': kMinCount, 'max': maxCount}),
-                      style:
-                          TextStyle(fontSize: 12, color: context.c.mutedFg),
-                    ),
+                  Text(
+                    ref.trs('test.question_count_hint',
+                        {'min': kMinCount, 'max': maxCount}),
+                    style: TextStyle(fontSize: 12, color: context.c.mutedFg),
+                  ),
                 ],
               ),
             ),
@@ -679,8 +739,10 @@ class _CheerPopup extends ConsumerWidget {
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeOutBack,
-      builder: (context, t, child) =>
-          Transform.scale(scale: 0.6 + 0.4 * t, child: Opacity(opacity: t, child: child)),
+      // easeOutBack 1.0 dan oshib ketadi — Opacity uchun qiymatni cheklaymiz
+      builder: (context, t, child) => Transform.scale(
+          scale: 0.6 + 0.4 * t,
+          child: Opacity(opacity: t.clamp(0.0, 1.0), child: child)),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(

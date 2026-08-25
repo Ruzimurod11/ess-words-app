@@ -64,6 +64,7 @@ class _TestScreenState extends ConsumerState<TestScreen> {
             QuizGame(
               key: ValueKey('${level.value}-${s.unit}'),
               unitId: s.unit,
+              selectableCount: true,
               level: level,
               onExit: () =>
                   _go(_TS(mode: 'topic', level: level, book: s.book)),
@@ -413,10 +414,13 @@ class _BookPicker extends ConsumerWidget {
           error: (e, _) => StateCard(
               error: true, child: Text('${ref.tr('common.error')}: $e')),
           data: (books) {
-            final essential =
-                books.where((b) => b.kind == BookKind.essential).toList();
+            final testable = books
+                .where((b) =>
+                    b.kind == BookKind.essential || b.kind == BookKind.passages)
+                .toList();
             return Column(
-              children: essential.map((book) {
+              children: testable.map((book) {
+                final isPassages = book.kind == BookKind.passages;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: AppCard(
@@ -430,16 +434,21 @@ class _BookPicker extends ConsumerWidget {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: bookGradient(book.order),
+                              colors: isPassages
+                                  ? const [Color(0xFFF59E0B), Color(0xFFEA580C)]
+                                  : bookGradient(book.order),
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text('${book.order}',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold)),
+                          child: isPassages
+                              ? const Icon(Icons.article,
+                                  color: Colors.white, size: 20)
+                              : Text('${book.order}',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
