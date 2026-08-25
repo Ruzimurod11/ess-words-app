@@ -41,6 +41,10 @@
     "part_count": "{{count}} parts",
     "empty": "No words yet."
   },
+  "passages": {
+    "title": "INTERMEDIATE PASSEGES",
+    "subtitle": "ELS Vocabulary — 67 passages, each one a separate part."
+  },
   "word_form": {
     "title": "Add a new word",
     "success": "Word added",

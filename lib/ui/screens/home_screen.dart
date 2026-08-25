@@ -31,6 +31,7 @@ class HomeScreen extends ConsumerWidget {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         const _VocabularyCard(),
+        const _PassagesSection(),
         const SizedBox(height: 16),
       ],
     );
@@ -141,6 +142,85 @@ class _VocabularyCard extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PassagesSection extends ConsumerWidget {
+  const _PassagesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.c;
+    final books = ref.watch(booksProvider).valueOrNull ?? <Book>[];
+    Book? passages;
+    for (final b in books) {
+      if (b.kind == BookKind.passages) {
+        passages = b;
+        break;
+      }
+    }
+    if (passages == null) return const SizedBox.shrink();
+    final book = passages;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 28),
+        Divider(color: c.border),
+        const SizedBox(height: 16),
+        Text(ref.tr('passages.title'),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 16),
+        AppCard(
+          onTap: () => context.go('/books/${book.id}'),
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFF59E0B), Color(0xFFEA580C)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.article, color: Colors.white),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(ref.tr('passages.title'),
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(ref.tr('passages.subtitle'),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13, color: c.mutedFg)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(ref.tr('book.unit_count', {'count': book.unitCount}),
+                      style: TextStyle(fontSize: 12, color: c.mutedFg)),
+                  Text(ref.tr('book.word_count', {'count': book.wordCount}),
+                      style: TextStyle(fontSize: 12, color: c.mutedFg)),
+                  const SizedBox(height: 4),
+                  Icon(Icons.arrow_forward, size: 16, color: c.primary),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

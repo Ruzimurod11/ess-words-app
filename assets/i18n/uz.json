@@ -41,6 +41,10 @@
     "part_count": "{{count}} bo'lim",
     "empty": "Hozircha so'z yo'q."
   },
+  "passages": {
+    "title": "INTERMEDIATE PASSEGES",
+    "subtitle": "ELS Vocabulary — 67 ta matn, har biri alohida bo'lim."
+  },
   "word_form": {
     "title": "Yangi so'z qo'shish",
     "success": "So'z qo'shildi",

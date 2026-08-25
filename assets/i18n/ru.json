@@ -41,6 +41,10 @@
     "part_count": "{{count}} частей",
     "empty": "Пока нет слов."
   },
+  "passages": {
+    "title": "INTERMEDIATE PASSEGES",
+    "subtitle": "ELS Vocabulary — 67 текстов, каждый — отдельная часть."
+  },
   "word_form": {
     "title": "Добавить новое слово",
     "success": "Слово добавлено",

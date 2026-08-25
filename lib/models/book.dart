@@ -1,7 +1,10 @@
-enum BookKind { essential, vocabulary }
+enum BookKind { essential, vocabulary, passages }
 
-BookKind bookKindFrom(String? v) =>
-    v == 'vocabulary' ? BookKind.vocabulary : BookKind.essential;
+BookKind bookKindFrom(String? v) => switch (v) {
+      'vocabulary' => BookKind.vocabulary,
+      'passages' => BookKind.passages,
+      _ => BookKind.essential,
+    };
 
 class Book {
   final int id;
