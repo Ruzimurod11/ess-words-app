@@ -1,82 +1,223 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-/// Nishon effekti: butun ekran bo'ylab fireworks portlashlari + pastdagi ikki
-/// burchakdan otiladigan konfetti. 5 ta ketma-ket to'g'ri javobda ko'rsatiladi.
+/// 5 ta ketma-ket to'g'ri javob nishoni. Web versiyasi (canvas-confetti) bilan
+/// bir xil ketma-ketlik: markazdan katta portlash, oltin yulduzli yaltiroq,
+/// pastki burchaklardan ikki to'lqin yon to'plar, emoji yomg'iri va ekran
+/// bo'ylab tasodifiy portlashlar oqimi.
 const Duration kCelebrationDuration = Duration(milliseconds: 2500);
 
-const _palette = [
-  Color(0xFFF59E0B),
-  Color(0xFFEC4899),
-  Color(0xFF22D3EE),
-  Color(0xFFA855F7),
-  Color(0xFF22C55E),
+const _base = <Color>[
   Color(0xFFEF4444),
+  Color(0xFFF97316),
+  Color(0xFFEAB308),
+  Color(0xFF22C55E),
   Color(0xFF3B82F6),
+  Color(0xFFA855F7),
+  Color(0xFFEC4899),
 ];
 
-class _Burst {
-  final Offset center; // ekran o'lchamiga nisbatan (0..1)
-  final Color color;
-  final double start; // umumiy progressdagi boshlanish nuqtasi
-  final double distance; // zarralarning uchish masofasi (px)
-  const _Burst(this.center, this.color, this.start, this.distance);
-}
-
-const _bursts = [
-  _Burst(Offset(0.18, 0.26), Color(0xFFF59E0B), 0.00, 150),
-  _Burst(Offset(0.80, 0.20), Color(0xFFEC4899), 0.07, 170),
-  _Burst(Offset(0.50, 0.42), Color(0xFF22D3EE), 0.14, 200),
-  _Burst(Offset(0.26, 0.70), Color(0xFFA855F7), 0.21, 160),
-  _Burst(Offset(0.76, 0.66), Color(0xFF22C55E), 0.26, 180),
+const _gold = <Color>[
+  Color(0xFFFDE68A),
+  Color(0xFFFBBF24),
+  Color(0xFFF59E0B),
+  Color(0xFFFFF7ED),
 ];
 
-const _particlesPerBurst = 16;
+const _emojis = <String>['🎉', '🎊', '✨', '⭐', '🥳', '🎁', '🏆', '💫'];
 
-/// Har bir zarraga kichik burchak/masofa og'ishi — halqa mukammal doira
-/// bo'lib qolmasligi uchun.
-final List<(double, double)> _particleJitter = () {
-  final rng = math.Random(3);
-  return List<(double, double)>.generate(
-    _particlesPerBurst,
-    (_) => (rng.nextDouble() * 0.5 - 0.25, 0.75 + rng.nextDouble() * 0.45),
-  );
-}();
+/// Tasodifiy portlashlar oqimi shuncha davom etadi; QuizGame effektni
+/// kCelebrationDuration dan keyin olib tashlaydi.
+const _streamMs = 1500.0;
+const _streamGapMs = 170.0;
+const _msPerTick = 1000 / 60;
 
-class _Confetti {
-  final Color color;
-  final double dx; // gorizontal siljish (ekran kengligiga nisbatan)
-  final double peak; // otilish balandligi (ekran balandligiga nisbatan)
-  final double start;
-  final double span;
-  final double spin;
-  final Size size;
-  final bool round;
-  const _Confetti(this.color, this.dx, this.peak, this.start, this.span,
-      this.spin, this.size, this.round);
-}
+enum _Shape { mixed, star, emoji }
 
-/// Parchalar bir marta — qat'iy urug' bilan — yaratiladi, shunda har bir
-/// portlashda traektoriya bir xil va tabiiy tarqoq bo'ladi. Ro'yxatning birinchi
-/// yarmi chap, ikkinchisi o'ng to'pga tegishli — shunda ikki tomon bir-birining
-/// ko'zgudagi aksiga o'xshab qolmaydi.
-final List<_Confetti> _confetti = () {
-  final rng = math.Random(7);
-  return List<_Confetti>.generate(40, (i) {
-    final wide = i % 3 == 0;
-    return _Confetti(
-      _palette[i % _palette.length],
-      0.20 + rng.nextDouble() * 0.60,
-      0.30 + rng.nextDouble() * 0.35,
-      rng.nextDouble() * 0.18,
-      0.62 + rng.nextDouble() * 0.28,
-      (2 + rng.nextDouble() * 4) * (rng.nextBool() ? 1 : -1),
-      wide ? const Size(8, 8) : const Size(6, 12),
-      i % 4 == 0,
-    );
+/// Bitta otish (canvas-confetti `confetti(opts)` chaqiruvi) tavsifi.
+class _Spec {
+  final double at; // effekt boshidan necha ms keyin otiladi
+  final int count;
+  final double angle;
+  final double spread;
+  final double startVelocity;
+  final double decay;
+  final double gravity;
+  final int ticks;
+  final double scalar;
+  final Offset origin; // ekran o'lchamiga nisbatan (0..1)
+  final List<Color> colors;
+  final _Shape shape;
+
+  const _Spec({
+    this.at = 0,
+    required this.count,
+    this.angle = 90,
+    this.spread = 45,
+    this.startVelocity = 45,
+    this.decay = 0.9,
+    this.gravity = 1,
+    this.ticks = 200,
+    this.scalar = 1,
+    required this.origin,
+    this.colors = _base,
+    this.shape = _Shape.mixed,
   });
-}();
+}
+
+const _schedule = <_Spec>[
+  // 1. markaziy portlash
+  _Spec(
+    count: 120,
+    spread: 110,
+    startVelocity: 50,
+    scalar: 1.1,
+    origin: Offset(0.5, 0.55),
+  ),
+  // 2. oltin yulduzli yaltiroq — asosiy portlash ustidan uchadi
+  _Spec(
+    count: 45,
+    spread: 130,
+    startVelocity: 38,
+    gravity: 0.6,
+    decay: 0.92,
+    scalar: 1.3,
+    origin: Offset(0.5, 0.55),
+    colors: _gold,
+    shape: _Shape.star,
+  ),
+  // 3. pastki burchaklardan yon to'plar (ikki to'lqin) va emoji yomg'iri
+  _Spec(
+    at: 120,
+    count: 70,
+    angle: 60,
+    spread: 70,
+    startVelocity: 55,
+    origin: Offset(0, 0.7),
+  ),
+  _Spec(
+    at: 150,
+    count: 26,
+    spread: 120,
+    startVelocity: 35,
+    gravity: 0.7,
+    ticks: 220,
+    scalar: 2,
+    origin: Offset(0.5, 0.6),
+    shape: _Shape.emoji,
+  ),
+  _Spec(
+    at: 220,
+    count: 70,
+    angle: 120,
+    spread: 70,
+    startVelocity: 55,
+    origin: Offset(1, 0.7),
+  ),
+  _Spec(
+    at: 700,
+    count: 12,
+    spread: 120,
+    startVelocity: 35,
+    gravity: 0.7,
+    ticks: 220,
+    scalar: 2,
+    origin: Offset(0.2, 0.6),
+    shape: _Shape.emoji,
+  ),
+  _Spec(
+    at: 780,
+    count: 12,
+    spread: 120,
+    startVelocity: 35,
+    gravity: 0.7,
+    ticks: 220,
+    scalar: 2,
+    origin: Offset(0.8, 0.6),
+    shape: _Shape.emoji,
+  ),
+  _Spec(
+    at: 900,
+    count: 45,
+    angle: 60,
+    spread: 70,
+    startVelocity: 55,
+    origin: Offset(0, 0.7),
+  ),
+  _Spec(
+    at: 1000,
+    count: 45,
+    angle: 120,
+    spread: 70,
+    startVelocity: 55,
+    origin: Offset(1, 0.7),
+  ),
+];
+
+/// Bitta zarra. Fizika canvas-confetti bilan bir xil: har tikda tezlik
+/// `decay` ga qisqaradi, `gravity` esa pastga qat'iy siljish beradi.
+class _Fetti {
+  double x;
+  double y;
+  double wobble;
+  final double wobbleSpeed;
+  double velocity;
+  final double angle2D;
+  double tiltAngle;
+  final double decay;
+  final double gravity;
+  final double scalar;
+  final int totalTicks;
+  final Color color;
+  final _Shape shape;
+  final int variant; // kvadrat/doira tanlovi yoki emoji indeksi
+
+  double wobbleX = 0;
+  double wobbleY = 0;
+  double tiltSin = 0;
+  double tiltCos = 0;
+  double random = 2;
+  int tick = 0;
+  double progress = 0;
+
+  _Fetti({
+    required this.x,
+    required this.y,
+    required this.wobble,
+    required this.wobbleSpeed,
+    required this.velocity,
+    required this.angle2D,
+    required this.tiltAngle,
+    required this.decay,
+    required this.gravity,
+    required this.scalar,
+    required this.totalTicks,
+    required this.color,
+    required this.shape,
+    required this.variant,
+  });
+
+  void advance(math.Random rng) {
+    x += math.cos(angle2D) * velocity;
+    y += math.sin(angle2D) * velocity + gravity;
+    velocity *= decay;
+
+    wobble += wobbleSpeed;
+    wobbleX = x + (10 * scalar) * math.cos(wobble);
+    wobbleY = y + (10 * scalar) * math.sin(wobble);
+    tiltAngle += 0.1;
+    tiltSin = math.sin(tiltAngle);
+    tiltCos = math.cos(tiltAngle);
+    random = rng.nextDouble() + 2;
+
+    progress = tick / totalTicks;
+    tick++;
+  }
+
+  bool get dead => tick >= totalTicks;
+}
 
 class Celebration extends StatefulWidget {
   const Celebration({super.key});
@@ -90,12 +231,97 @@ class _CelebrationState extends State<Celebration>
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: kCelebrationDuration,
-  )..forward();
+  )..addListener(_step);
+
+  final _rng = math.Random();
+  final _fettis = <_Fetti>[];
+  late final List<ui.Image> _emojiImages =
+      _emojis.map((e) => _rasterize(e, 22)).toList();
+
+  Size _size = Size.zero;
+  bool _started = false;
+  int _tick = 0;
+  int _nextSpec = 0;
+  double _lastStreamShot = -_streamGapMs;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _size = MediaQuery.sizeOf(context);
+    if (_started) return;
+    _started = true;
+    // tizimda animatsiya o'chirilgan bo'lsa (a11y) hech narsa chizilmaydi
+    if (!MediaQuery.disableAnimationsOf(context)) _controller.forward();
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    for (final image in _emojiImages) {
+      image.dispose();
+    }
     super.dispose();
+  }
+
+  void _step() {
+    final now = _controller.value * kCelebrationDuration.inMilliseconds;
+
+    while (_nextSpec < _schedule.length && _schedule[_nextSpec].at <= now) {
+      _emit(_schedule[_nextSpec++]);
+    }
+
+    // ekranning yuqori yarmi bo'ylab tasodifiy portlashlar oqimi
+    if (now <= _streamMs && now - _lastStreamShot >= _streamGapMs) {
+      _lastStreamShot = now;
+      _emit(_Spec(
+        count: 22,
+        spread: 360,
+        startVelocity: 22,
+        ticks: 120,
+        scalar: 0.9,
+        origin: Offset(
+          0.12 + _rng.nextDouble() * 0.76,
+          _rng.nextDouble() * 0.5,
+        ),
+      ));
+    }
+
+    // kadr tushib qolsa ham fizika bir xil tezlikda yursin
+    final target = (now / _msPerTick).floor();
+    var steps = math.min(target - _tick, 3);
+    while (steps-- > 0) {
+      for (final fetti in _fettis) {
+        fetti.advance(_rng);
+      }
+      _fettis.removeWhere((f) => f.dead);
+    }
+    _tick = target;
+  }
+
+  void _emit(_Spec spec) {
+    if (_size.isEmpty) return;
+    final radAngle = spec.angle * math.pi / 180;
+    final radSpread = spec.spread * math.pi / 180;
+    for (var i = 0; i < spec.count; i++) {
+      _fettis.add(_Fetti(
+        x: spec.origin.dx * _size.width,
+        y: spec.origin.dy * _size.height,
+        wobble: _rng.nextDouble() * 10,
+        wobbleSpeed: math.min(0.11, _rng.nextDouble() * 0.1 + 0.05),
+        velocity:
+            spec.startVelocity * 0.5 + _rng.nextDouble() * spec.startVelocity,
+        angle2D: -radAngle + (0.5 * radSpread - _rng.nextDouble() * radSpread),
+        tiltAngle: (_rng.nextDouble() * 0.5 + 0.25) * math.pi,
+        decay: spec.decay,
+        gravity: spec.gravity * 3,
+        scalar: spec.scalar,
+        totalTicks: spec.ticks,
+        color: spec.colors[i % spec.colors.length],
+        shape: spec.shape,
+        variant:
+            spec.shape == _Shape.emoji ? i % _emojis.length : _rng.nextInt(2),
+      ));
+    }
   }
 
   @override
@@ -105,7 +331,7 @@ class _CelebrationState extends State<Celebration>
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, _) => CustomPaint(
-            painter: _CelebrationPainter(_controller.value),
+            painter: _CelebrationPainter(_fettis, _emojiImages),
             size: Size.infinite,
           ),
         ),
@@ -114,97 +340,115 @@ class _CelebrationState extends State<Celebration>
   }
 }
 
-class _CelebrationPainter extends CustomPainter {
-  final double t;
-  _CelebrationPainter(this.t);
+/// Emoji har kadrda TextPainter bilan chizilmasligi uchun bir marta rasmga
+/// aylantiriladi.
+ui.Image _rasterize(String text, double fontSize) {
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: TextStyle(fontSize: fontSize)),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  final recorder = ui.PictureRecorder();
+  painter.paint(Canvas(recorder), Offset.zero);
+  final picture = recorder.endRecording();
+  final image = picture.toImageSync(
+    math.max(1, painter.width.ceil()),
+    math.max(1, painter.height.ceil()),
+  );
+  picture.dispose();
+  painter.dispose();
+  return image;
+}
 
-  double _local(double start, double span) =>
-      ((t - start) / span).clamp(0.0, 1.0);
+class _CelebrationPainter extends CustomPainter {
+  final List<_Fetti> fettis;
+  final List<ui.Image> emojiImages;
+
+  _CelebrationPainter(this.fettis, this.emojiImages);
 
   @override
   void paint(Canvas canvas, Size size) {
-    _paintFireworks(canvas, size);
-    _paintConfetti(canvas, size, fromLeft: true);
-    _paintConfetti(canvas, size, fromLeft: false);
-  }
+    for (final f in fettis) {
+      final alpha = (1 - f.progress).clamp(0.0, 1.0);
+      if (alpha <= 0) continue;
+      final paint = Paint()..color = f.color.withValues(alpha: alpha);
 
-  void _paintFireworks(Canvas canvas, Size size) {
-    for (final burst in _bursts) {
-      final p = _local(burst.start, 0.55);
-      if (p <= 0 || p >= 1) continue;
-      final center =
-          Offset(burst.center.dx * size.width, burst.center.dy * size.height);
+      final x1 = f.x + f.random * f.tiltCos;
+      final y1 = f.y + f.random * f.tiltSin;
+      final x2 = f.wobbleX + f.random * f.tiltCos;
+      final y2 = f.wobbleY + f.random * f.tiltSin;
 
-      // portlash yorug'ligi — zarralar tarqalguncha markazda so'nadi
-      final flash = _local(burst.start, 0.18);
-      if (flash > 0 && flash < 1) {
-        canvas.drawCircle(
-          center,
-          14 + 34 * flash,
-          Paint()
-            ..color = burst.color.withValues(alpha: 0.5 * (1 - flash))
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
-        );
-      }
-
-      final eased = Curves.easeOutCubic.transform(p);
-      final fade = p < 0.12 ? p / 0.12 : 1 - (p - 0.12) / 0.88;
-      final paint = Paint()
-        ..color = burst.color.withValues(alpha: fade.clamp(0.0, 1.0));
-      final glow = Paint()
-        ..color = burst.color.withValues(alpha: 0.35 * fade.clamp(0.0, 1.0))
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-      for (var i = 0; i < _particlesPerBurst; i++) {
-        final j = _particleJitter[i];
-        final angle = (2 * math.pi / _particlesPerBurst) * (i + j.$1);
-        final r = burst.distance * eased * j.$2;
-        final pos = center + Offset(math.cos(angle) * r, math.sin(angle) * r);
-        final radius = 4 * (1 - 0.6 * p);
-        canvas.drawCircle(pos, radius * 2.2, glow);
-        canvas.drawCircle(pos, radius, paint);
+      switch (f.shape) {
+        case _Shape.star:
+          _paintStar(canvas, f, paint);
+        case _Shape.emoji:
+          _paintEmoji(canvas, f, alpha, x1, y1, x2, y2);
+        case _Shape.mixed:
+          if (f.variant == 0) {
+            canvas.drawPath(
+              Path()
+                ..moveTo(f.x, f.y)
+                ..lineTo(f.wobbleX, y1)
+                ..lineTo(x2, y2)
+                ..lineTo(x1, f.wobbleY)
+                ..close(),
+              paint,
+            );
+          } else {
+            canvas.save();
+            canvas.translate(f.x, f.y);
+            canvas.rotate(math.pi / 10 * f.wobble);
+            canvas.drawOval(
+              Rect.fromCenter(
+                center: Offset.zero,
+                width: (x2 - x1).abs(),
+                height: (y2 - y1).abs(),
+              ),
+              paint,
+            );
+            canvas.restore();
+          }
       }
     }
   }
 
-  void _paintConfetti(Canvas canvas, Size size, {required bool fromLeft}) {
-    final origin = Offset(fromLeft ? size.width * 0.02 : size.width * 0.98,
-        size.height);
-    final sign = fromLeft ? 1.0 : -1.0;
-    final half = _confetti.length ~/ 2;
-    final pieces = fromLeft
-        ? _confetti.take(half)
-        : _confetti.skip(half);
-    for (final piece in pieces) {
-      final p = _local(piece.start, piece.span);
-      if (p <= 0 || p >= 1) continue;
-      // gorizontal — tekis, vertikal — avval otilish, keyin tortishish
-      final x = origin.dx + sign * piece.dx * size.width * p;
-      final peak = piece.peak * size.height;
-      final double y;
-      if (p <= 0.4) {
-        y = origin.dy - peak * Curves.easeOut.transform(p / 0.4);
-      } else {
-        final f = (p - 0.4) / 0.6;
-        y = origin.dy - peak + (peak + size.height * 0.2) * f * f;
-      }
-      final fade = p < 0.75 ? 1.0 : 1 - (p - 0.75) / 0.25;
-      final paint = Paint()
-        ..color = piece.color.withValues(alpha: fade.clamp(0.0, 1.0));
-      canvas.save();
-      canvas.translate(x, y);
-      canvas.rotate(piece.spin * sign * p * math.pi);
-      final rect = Rect.fromCenter(
-          center: Offset.zero, width: piece.size.width, height: piece.size.height);
-      if (piece.round) {
-        canvas.drawOval(rect, paint);
-      } else {
-        canvas.drawRRect(
-            RRect.fromRectAndRadius(rect, const Radius.circular(2)), paint);
-      }
-      canvas.restore();
+  void _paintStar(Canvas canvas, _Fetti f, Paint paint) {
+    const spikes = 5;
+    const step = math.pi / spikes;
+    final inner = 4 * f.scalar;
+    final outer = 8 * f.scalar;
+    var rot = math.pi / 2 * 3;
+    final path = Path();
+    for (var i = 0; i < spikes; i++) {
+      path.lineTo(f.x + math.cos(rot) * outer, f.y + math.sin(rot) * outer);
+      rot += step;
+      path.lineTo(f.x + math.cos(rot) * inner, f.y + math.sin(rot) * inner);
+      rot += step;
     }
+    canvas.drawPath(path..close(), paint);
+  }
+
+  void _paintEmoji(Canvas canvas, _Fetti f, double alpha, double x1, double y1,
+      double x2, double y2) {
+    final image = emojiImages[f.variant];
+    // wobble emojini aylantiradi va siqadi — varaqdek qalqib tushadi
+    final scaleX = (x2 - x1).abs() * 0.1;
+    final scaleY = (y2 - y1).abs() * 0.1;
+    if (scaleX <= 0.01 || scaleY <= 0.01) return;
+    canvas.save();
+    canvas.translate(f.x, f.y);
+    canvas.rotate(math.pi / 10 * f.wobble);
+    canvas.scale(scaleX, scaleY);
+    final w = image.width.toDouble();
+    final h = image.height.toDouble();
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, w, h),
+      Rect.fromCenter(center: Offset.zero, width: w, height: h),
+      Paint()..color = Colors.white.withValues(alpha: alpha),
+    );
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_CelebrationPainter old) => old.t != t;
+  bool shouldRepaint(_CelebrationPainter old) => true;
 }
