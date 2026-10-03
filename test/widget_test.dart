@@ -80,4 +80,23 @@ void main() {
 
     expect(find.text('INTERMEDIATE PASSEGES'), findsNothing);
   });
+
+  testWidgets('a topic book gets its own home section',
+      (WidgetTester tester) async {
+    await _mount(tester, [
+      _book(id: 40, title: 'Family', kind: BookKind.topic),
+    ]);
+
+    expect(find.text('Mavzular'), findsOneWidget);
+    expect(find.text('Family'), findsOneWidget);
+  });
+
+  testWidgets('no topics hides the topics section',
+      (WidgetTester tester) async {
+    await _mount(tester, [
+      _book(id: 1, title: 'Book 1', kind: BookKind.essential),
+    ]);
+
+    expect(find.text('Mavzular'), findsNothing);
+  });
 }

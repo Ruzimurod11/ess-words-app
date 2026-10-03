@@ -11,6 +11,7 @@ import '../../../models/quiz.dart';
 import '../../../state/app_state.dart';
 import '../../../state/data.dart';
 import '../../theme.dart';
+import '../../widgets/audio_button.dart';
 import '../../widgets/common.dart';
 import '../../widgets/loader.dart';
 import 'celebration.dart';
@@ -301,6 +302,9 @@ class _QuizGameState extends ConsumerState<QuizGame> {
   String? _partOfSpeechFor(QuizResponse data, String text) =>
       data.partsOfSpeech[text.trim().toLowerCase()];
 
+  String? _audioFor(QuizResponse data, String text) =>
+      data.audioUrls[text.trim().toLowerCase()];
+
   Widget _question(QuizResponse data) {
     final c = context.c;
     final question = data.questions[_index];
@@ -310,6 +314,10 @@ class _QuizGameState extends ConsumerState<QuizGame> {
     final cheer = answered ? getQuizCheer(_answers) : null;
     final qTrans = _transcriptionFor(data, question.question);
     final qPos = _partOfSpeechFor(data, question.question);
+    // English prompt only: easy mode, EN→UZ. Hard mode asks in Uzbek.
+    final questionAudio = !_hard && _direction == QuizDirection.enUz
+        ? _audioFor(data, question.question)
+        : null;
 
     return Stack(
       children: [
@@ -359,8 +367,11 @@ class _QuizGameState extends ConsumerState<QuizGame> {
                 AppCard(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Text(question.question,
                           textAlign: TextAlign.center,
@@ -379,6 +390,12 @@ class _QuizGameState extends ConsumerState<QuizGame> {
                             if (qTrans != null) TextSpan(text: '[$qTrans]'),
                           ]),
                           style: TextStyle(fontSize: 14, color: c.mutedFg),
+                        ),
+                      if (questionAudio != null)
+                        AudioButton(
+                          url: questionAudio,
+                          tooltip: ref.trs('words_table.audio_aria'),
+                          filled: true,
                         ),
                     ],
                   ),
@@ -421,18 +438,25 @@ class _QuizGameState extends ConsumerState<QuizGame> {
       children: question.options.map((option) {
         final trans = _transcriptionFor(data, option);
         final pos = _partOfSpeechFor(data, option);
+        // UZ→EN: the options are the English words.
+        final audioUrl = _direction == QuizDirection.uzEn
+            ? _audioFor(data, option)
+            : null;
         Color bg = c.card;
         Color fg = c.foreground;
         Color border = c.border;
+        var highlighted = false;
         if (answered) {
           if (option == question.correct) {
             bg = const Color(0xFF22C55E);
             fg = Colors.white;
             border = const Color(0xFF22C55E);
+            highlighted = true;
           } else if (option == _selected) {
             bg = const Color(0xFFEF4444);
             fg = Colors.white;
             border = const Color(0xFFEF4444);
+            highlighted = true;
           } else {
             fg = c.mutedFg;
           }
@@ -442,43 +466,58 @@ class _QuizGameState extends ConsumerState<QuizGame> {
           child: Material(
             color: bg,
             borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: answered ? null : () => _onSelect(question, option),
-              child: Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: border, width: 2),
-                ),
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(option,
-                          style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: fg)),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: border, width: 2),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: answered ? null : () => _onSelect(question, option),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(option,
+                                style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                    color: fg)),
+                            if (pos != null)
+                              Text('$pos.',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontStyle: FontStyle.italic,
+                                      color: fg.withValues(alpha: 0.8))),
+                            if (trans != null)
+                              Text('[$trans]',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      color: fg.withValues(alpha: 0.8))),
+                          ],
+                        ),
+                      ),
                     ),
-                    if (pos != null) ...[
-                      const SizedBox(width: 8),
-                      Text('$pos.',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontStyle: FontStyle.italic,
-                              color: fg.withValues(alpha: 0.8))),
-                    ],
-                    if (trans != null) ...[
-                      const SizedBox(width: 8),
-                      Text('[$trans]',
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: fg.withValues(alpha: 0.8))),
-                    ],
-                  ],
-                ),
+                  ),
+                  if (audioUrl != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: AudioButton(
+                        url: audioUrl,
+                        tooltip: ref.trs('words_table.audio_aria'),
+                        filled: true,
+                        onLight: highlighted,
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -492,6 +531,7 @@ class _QuizGameState extends ConsumerState<QuizGame> {
     final c = context.c;
     final correctTrans = _transcriptionFor(data, question.correct);
     final correctPos = _partOfSpeechFor(data, question.correct);
+    final correctAudio = _audioFor(data, question.correct);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -522,15 +562,28 @@ class _QuizGameState extends ConsumerState<QuizGame> {
                   .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              '${ref.trs('test.correct_answer')}: ${question.correct}'
-              '${correctPos != null ? '  $correctPos.' : ''}'
-              '${correctTrans != null ? '  [$correctTrans]' : ''}',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: answerCorrect ? c.success : c.destructive),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              children: [
+                Text(
+                  '${ref.trs('test.correct_answer')}: ${question.correct}'
+                  '${correctPos != null ? '  $correctPos.' : ''}'
+                  '${correctTrans != null ? '  [$correctTrans]' : ''}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: answerCorrect ? c.success : c.destructive),
+                ),
+                if (correctAudio != null)
+                  AudioButton(
+                    url: correctAudio,
+                    tooltip: ref.trs('words_table.audio_aria'),
+                    filled: true,
+                  ),
+              ],
             ),
           ),
         ] else ...[

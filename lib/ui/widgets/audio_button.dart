@@ -30,11 +30,17 @@ class AudioButton extends StatelessWidget {
   final String url;
   final String tooltip;
   final double size;
+  /// Quiz options use a tinted chip; the word list keeps a plain icon.
+  final bool filled;
+  /// White icon on a correct/incorrect option that is already colored.
+  final bool onLight;
   const AudioButton({
     super.key,
     required this.url,
     required this.tooltip,
     this.size = 18,
+    this.filled = false,
+    this.onLight = false,
   });
 
   Future<void> _play() async {
@@ -63,14 +69,22 @@ class AudioButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final fg = onLight ? Colors.white : c.primary;
+    final bg = onLight
+        ? Colors.white.withValues(alpha: 0.20)
+        : c.primary.withValues(alpha: 0.10);
     return Tooltip(
       message: tooltip,
-      child: InkWell(
-        onTap: _play,
+      child: Material(
+        color: filled ? bg : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Icon(Icons.volume_up, size: size, color: c.primary),
+        child: InkWell(
+          onTap: _play,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: Icon(Icons.volume_up, size: size, color: fg),
+          ),
         ),
       ),
     );

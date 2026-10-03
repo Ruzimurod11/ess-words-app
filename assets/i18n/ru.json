@@ -32,11 +32,35 @@
     "not_found": "Книга не найдена.",
     "no_units": "В этой книге пока нет юнитов.",
     "select_unit_aria": "Выбрать юнит",
-    "unit_tab_title": "{{title}} — {{count}} слов"
+    "unit_tab_title": "{{title}} — {{count}} слов",
+    "unit_tab_closed": "{{title}} — {{count}} слов, закрыт",
+    "close_unit": "Закрыть юнит",
+    "reopen_unit": "Открыть юнит",
+    "unit_status_pending": "Сохранение...",
+    "unit_closed": "Закрыт",
+    "unit_closed_hint": "Этот юнит закрыт. Откройте его или создайте новый, чтобы добавить слова."
+  },
+  "topic": {
+    "section_title": "Темы",
+    "section_subtitle": "Добавьте свою тему. Закрывайте юнит на любом количестве слов.",
+    "add": "Добавить тему",
+    "add_title": "Новая тема",
+    "edit_title": "Изменить тему",
+    "name_label": "Название",
+    "name_placeholder": "Family",
+    "description_label": "Описание",
+    "description_placeholder": "Необязательно",
+    "title_required": "Нужно название темы",
+    "saving": "Сохранение...",
+    "empty": "Тем пока нет. Войдите как администратор и добавьте первую.",
+    "new_unit": "Новый юнит",
+    "creating_unit": "Создание...",
+    "delete_title": "Удалить тему",
+    "delete_confirm": "Удалить «{{title}}»? Юниты и слова тоже будут удалены."
   },
   "vocab": {
     "title": "Vocabularies",
-    "subtitle": "Дополнительные слова помимо Essential Words. По 100 слов в каждой части.",
+    "subtitle": "Дополнительные слова. Закройте часть на любом числе слов — иначе следующая откроется на 100.",
     "part": "Часть {{n}}",
     "part_count": "{{count}} частей",
     "empty": "Пока нет слов."

@@ -101,6 +101,19 @@ class ApiClient {
     }
   }
 
+  Future<T> patch<T>(
+    String path,
+    T Function(dynamic data) map, {
+    Object? body,
+  }) async {
+    try {
+      final res = await _dio.patch(path, data: body);
+      return _unwrap(res.data, map);
+    } catch (e) {
+      throw _toException(e);
+    }
+  }
+
   Future<T> delete<T>(String path, T Function(dynamic data) map) async {
     try {
       final res = await _dio.delete(path);

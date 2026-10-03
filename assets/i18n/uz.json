@@ -32,11 +32,35 @@
     "not_found": "Kitob topilmadi.",
     "no_units": "Bu kitobda hali unit yo'q.",
     "select_unit_aria": "Unit tanlash",
-    "unit_tab_title": "{{title}} — {{count}} so'z"
+    "unit_tab_title": "{{title}} — {{count}} so'z",
+    "unit_tab_closed": "{{title}} — {{count}} so'z, yopilgan",
+    "close_unit": "Unitni yopish",
+    "reopen_unit": "Unitni ochish",
+    "unit_status_pending": "Saqlanmoqda...",
+    "unit_closed": "Yopilgan",
+    "unit_closed_hint": "Bu unit yopilgan. Yangi so'z qo'shish uchun unitni oching yoki yangi unit yarating."
+  },
+  "topic": {
+    "section_title": "Mavzular",
+    "section_subtitle": "O'z mavzuingizni qo'shing. Har bir unitni xohlagan so'z sonida yoping.",
+    "add": "Mavzu qo'shish",
+    "add_title": "Yangi mavzu",
+    "edit_title": "Mavzuni tahrirlash",
+    "name_label": "Nomi",
+    "name_placeholder": "Family",
+    "description_label": "Tavsif",
+    "description_placeholder": "Ixtiyoriy",
+    "title_required": "Mavzu nomi kerak",
+    "saving": "Saqlanmoqda...",
+    "empty": "Hali mavzu yo'q. Admin sifatida kirib, birinchisini qo'shing.",
+    "new_unit": "Yangi unit",
+    "creating_unit": "Yaratilmoqda...",
+    "delete_title": "Mavzuni o'chirish",
+    "delete_confirm": "\"{{title}}\" mavzusini o'chirasizmi? Ichidagi unit va so'zlar ham o'chadi."
   },
   "vocab": {
     "title": "Vocabularies",
-    "subtitle": "Essential Words'dan tashqari qo'shimcha so'zlar. Har bo'limda 100 tadan so'z.",
+    "subtitle": "Qo'shimcha so'zlar. Bo'limni xohlagan so'z sonida yoping — yopilmasa, 100 tada keyingisi ochiladi.",
     "part": "Bo'lim {{n}}",
     "part_count": "{{count}} bo'lim",
     "empty": "Hozircha so'z yo'q."

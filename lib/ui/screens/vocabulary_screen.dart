@@ -6,6 +6,7 @@ import '../../api/api.dart' as api;
 import '../../models/book.dart';
 import '../../state/app_state.dart';
 import '../../state/data.dart';
+import '../components/unit_close_button.dart';
 import '../components/unit_tabs.dart';
 import '../components/word_form.dart';
 import '../components/words_table.dart';
@@ -101,18 +102,22 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
               const SizedBox(height: 16),
             ],
             if (activeUnit != null && activeId != null) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Expanded(
-                    child: Text(
-                        ref.tr('vocab.part', {'n': activeUnit.order}),
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600)),
-                  ),
-                  Text(ref.tr('book.word_count', {'count': activeUnit.wordCount}),
+                  Text(ref.tr('vocab.part', {'n': activeUnit.order}),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w600)),
+                  Text(
+                      ref.tr('book.word_count',
+                          {'count': activeUnit.wordCount}),
                       style: TextStyle(fontSize: 13, color: c.mutedFg)),
+                  if (activeUnit.closed) const ClosedBadge(),
+                  if (isAdmin)
+                    UnitCloseButton(
+                        unitId: activeId, closed: activeUnit.closed),
                 ],
               ),
               const SizedBox(height: 12),

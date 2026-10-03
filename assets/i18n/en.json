@@ -32,11 +32,35 @@
     "not_found": "Book not found.",
     "no_units": "This book has no units yet.",
     "select_unit_aria": "Select unit",
-    "unit_tab_title": "{{title}} — {{count}} words"
+    "unit_tab_title": "{{title}} — {{count}} words",
+    "unit_tab_closed": "{{title}} — {{count}} words, closed",
+    "close_unit": "Close unit",
+    "reopen_unit": "Reopen unit",
+    "unit_status_pending": "Saving...",
+    "unit_closed": "Closed",
+    "unit_closed_hint": "This unit is closed. Reopen it or create a new unit to add words."
+  },
+  "topic": {
+    "section_title": "Topics",
+    "section_subtitle": "Add your own topic. Close each unit at whatever word count you want.",
+    "add": "Add topic",
+    "add_title": "New topic",
+    "edit_title": "Edit topic",
+    "name_label": "Name",
+    "name_placeholder": "Family",
+    "description_label": "Description",
+    "description_placeholder": "Optional",
+    "title_required": "Topic name is required",
+    "saving": "Saving...",
+    "empty": "No topics yet. Sign in as admin to add the first one.",
+    "new_unit": "New unit",
+    "creating_unit": "Creating...",
+    "delete_title": "Delete topic",
+    "delete_confirm": "Delete \"{{title}}\"? Its units and words will be deleted too."
   },
   "vocab": {
     "title": "Vocabularies",
-    "subtitle": "Extra words beyond Essential Words. 100 words in each part.",
+    "subtitle": "Extra words. Close a part at any word count — if you don't, the next part opens at 100.",
     "part": "Part {{n}}",
     "part_count": "{{count}} parts",
     "empty": "No words yet."

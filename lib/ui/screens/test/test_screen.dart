@@ -416,11 +416,17 @@ class _BookPicker extends ConsumerWidget {
           data: (books) {
             final testable = books
                 .where((b) =>
-                    b.kind == BookKind.essential || b.kind == BookKind.passages)
+                    b.kind == BookKind.essential ||
+                    b.kind == BookKind.passages ||
+                    b.kind == BookKind.topic)
                 .toList();
             return Column(
               children: testable.map((book) {
                 final isPassages = book.kind == BookKind.passages;
+                final isTopic = book.kind == BookKind.topic;
+                final topicLetter = book.title.isEmpty
+                    ? '?'
+                    : book.title.substring(0, 1).toUpperCase();
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: AppCard(
@@ -445,7 +451,7 @@ class _BookPicker extends ConsumerWidget {
                           child: isPassages
                               ? const Icon(Icons.article,
                                   color: Colors.white, size: 20)
-                              : Text('${book.order}',
+                              : Text(isTopic ? topicLetter : '${book.order}',
                                   style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold)),

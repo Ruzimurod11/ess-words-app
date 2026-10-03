@@ -40,6 +40,45 @@ Future<BookWithUnits> getBook(int id) => _c.get<BookWithUnits>(
       (d) => BookWithUnits.fromJson(d as Map<String, dynamic>),
     );
 
+Future<BookWithUnits> createTopic({
+  required String title,
+  String? description,
+}) =>
+    _c.post<BookWithUnits>(
+      '/books',
+      (d) => BookWithUnits.fromJson(d as Map<String, dynamic>),
+      body: {'title': title, 'description': description},
+    );
+
+Future<BookWithUnits> updateTopic(
+  int id, {
+  required String title,
+  String? description,
+}) =>
+    _c.patch<BookWithUnits>(
+      '/books/$id',
+      (d) => BookWithUnits.fromJson(d as Map<String, dynamic>),
+      body: {'title': title, 'description': description},
+    );
+
+Future<void> deleteTopic(int id) =>
+    _c.delete<void>('/books/$id', (_) {});
+
+Future<UnitSummary> createTopicUnit(int bookId) => _c.post<UnitSummary>(
+      '/books/$bookId/units',
+      (d) => UnitSummary.fromJson(d as Map<String, dynamic>),
+    );
+
+Future<UnitSummary> closeUnit(int unitId) => _c.post<UnitSummary>(
+      '/units/$unitId/close',
+      (d) => UnitSummary.fromJson(d as Map<String, dynamic>),
+    );
+
+Future<UnitSummary> reopenUnit(int unitId) => _c.post<UnitSummary>(
+      '/units/$unitId/reopen',
+      (d) => UnitSummary.fromJson(d as Map<String, dynamic>),
+    );
+
 // ----- vocabulary -----
 Future<BookWithUnits> getVocabulary() => _c.get<BookWithUnits>(
       '/vocabulary',

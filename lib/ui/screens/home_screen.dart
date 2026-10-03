@@ -6,6 +6,7 @@ import '../../models/book.dart';
 import '../../state/app_state.dart';
 import '../../state/data.dart';
 import '../components/books_grid.dart';
+import '../components/topic_dialog.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
@@ -32,6 +33,7 @@ class HomeScreen extends ConsumerWidget {
         const SizedBox(height: 16),
         const _VocabularyCard(),
         const _PassagesSection(),
+        const _TopicsSection(),
         const SizedBox(height: 16),
       ],
     );
@@ -221,6 +223,164 @@ class _PassagesSection extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TopicsSection extends ConsumerWidget {
+  const _TopicsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.c;
+    final isAdmin = ref.watch(isAdminProvider);
+    final books = ref.watch(booksProvider).valueOrNull;
+    if (books == null) return const SizedBox.shrink();
+    final topics = books.where((b) => b.kind == BookKind.topic).toList();
+    if (!isAdmin && topics.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 28),
+        Divider(color: c.border),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(ref.tr('topic.section_title'),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(ref.tr('topic.section_subtitle'),
+                      style: TextStyle(fontSize: 13, color: c.mutedFg)),
+                ],
+              ),
+            ),
+            if (isAdmin) ...[
+              const SizedBox(width: 8),
+              PrimaryButton(
+                onPressed: () async {
+                  final book = await showTopicDialog(context);
+                  if (book != null && context.mounted) {
+                    context.go('/books/${book.id}');
+                  }
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add, size: 16),
+                    const SizedBox(width: 4),
+                    Text(ref.tr('topic.add')),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (topics.isEmpty)
+          StateCard(child: Text(ref.tr('topic.empty')))
+        else
+          LayoutBuilder(builder: (context, constraints) {
+            final cols = constraints.maxWidth > 900
+                ? 3
+                : constraints.maxWidth > 600
+                    ? 2
+                    : 1;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: cols,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                mainAxisExtent: 168,
+              ),
+              itemCount: topics.length,
+              itemBuilder: (context, i) => _TopicCard(book: topics[i]),
+            );
+          }),
+      ],
+    );
+  }
+}
+
+class _TopicCard extends ConsumerWidget {
+  final Book book;
+  const _TopicCard({required this.book});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.c;
+    final letter =
+        book.title.isEmpty ? '?' : book.title.substring(0, 1).toUpperCase();
+    return AppCard(
+      onTap: () => context.go('/books/${book.id}'),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: bookGradient(book.order),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(letter,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+              ),
+              const Spacer(),
+              Pill(ref.tr('book.unit_count', {'count': book.unitCount})),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(book.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style:
+                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+          if (book.description != null && book.description!.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(book.description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, color: c.mutedFg)),
+          ],
+          const Spacer(),
+          Divider(height: 1, color: c.border),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(ref.tr('book.word_count', {'count': book.wordCount}),
+                  style: TextStyle(fontSize: 12, color: c.mutedFg)),
+              const Spacer(),
+              Text(ref.tr('common.open'),
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: c.primary)),
+              Icon(Icons.arrow_forward, size: 14, color: c.primary),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

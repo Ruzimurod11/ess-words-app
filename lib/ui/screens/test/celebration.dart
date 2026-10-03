@@ -235,8 +235,12 @@ class _CelebrationState extends State<Celebration>
 
   final _rng = math.Random();
   final _fettis = <_Fetti>[];
+  // canvas-confetti `shapeFromText({ scalar: 2 })`: shrift 10×scalar.
+  // Chizishda shu shape o'z matritsasida yana 1/scalar ga kichrayadi.
+  static const _emojiFontSize = 20.0;
+  static const _emojiShapeScale = 0.5;
   late final List<ui.Image> _emojiImages =
-      _emojis.map((e) => _rasterize(e, 22)).toList();
+      _emojis.map((e) => _rasterize(e, _emojiFontSize)).toList();
 
   Size _size = Size.zero;
   bool _started = false;
@@ -386,22 +390,27 @@ class _CelebrationPainter extends CustomPainter {
           if (f.variant == 0) {
             canvas.drawPath(
               Path()
-                ..moveTo(f.x, f.y)
-                ..lineTo(f.wobbleX, y1)
-                ..lineTo(x2, y2)
-                ..lineTo(x1, f.wobbleY)
+                ..moveTo(f.x.floorToDouble(), f.y.floorToDouble())
+                ..lineTo(f.wobbleX.floorToDouble(), y1.floorToDouble())
+                ..lineTo(x2.floorToDouble(), y2.floorToDouble())
+                ..lineTo(x1.floorToDouble(), f.wobbleY.floorToDouble())
                 ..close(),
               paint,
             );
           } else {
+            // ellipse radiusi abs(delta) * ovalScalar (0.6), to'liq kenglik
+            // shuning ikki baravari
+            const ovalScalar = 0.6;
+            final rx = (x2 - x1).abs() * ovalScalar;
+            final ry = (y2 - y1).abs() * ovalScalar;
             canvas.save();
             canvas.translate(f.x, f.y);
             canvas.rotate(math.pi / 10 * f.wobble);
             canvas.drawOval(
               Rect.fromCenter(
                 center: Offset.zero,
-                width: (x2 - x1).abs(),
-                height: (y2 - y1).abs(),
+                width: rx * 2,
+                height: ry * 2,
               ),
               paint,
             );
@@ -417,12 +426,16 @@ class _CelebrationPainter extends CustomPainter {
     final inner = 4 * f.scalar;
     final outer = 8 * f.scalar;
     var rot = math.pi / 2 * 3;
-    final path = Path();
+    // Flutter Path joriy nuqtani (0, 0) dan boshlaydi. moveTo bo'lmasa har
+    // yulduz ekranning chap yuqori burchagiga yopishib, katta uchburchak
+    // bo'lib ko'rinadi. HTML canvas esa birinchi lineTo ni moveTo deb oladi.
+    final path = Path()
+      ..moveTo(f.x + math.cos(rot) * outer, f.y + math.sin(rot) * outer);
     for (var i = 0; i < spikes; i++) {
-      path.lineTo(f.x + math.cos(rot) * outer, f.y + math.sin(rot) * outer);
       rot += step;
       path.lineTo(f.x + math.cos(rot) * inner, f.y + math.sin(rot) * inner);
       rot += step;
+      path.lineTo(f.x + math.cos(rot) * outer, f.y + math.sin(rot) * outer);
     }
     canvas.drawPath(path..close(), paint);
   }
@@ -430,9 +443,10 @@ class _CelebrationPainter extends CustomPainter {
   void _paintEmoji(Canvas canvas, _Fetti f, double alpha, double x1, double y1,
       double x2, double y2) {
     final image = emojiImages[f.variant];
-    // wobble emojini aylantiradi va siqadi — varaqdek qalqib tushadi
-    final scaleX = (x2 - x1).abs() * 0.1;
-    final scaleY = (y2 - y1).abs() * 0.1;
+    // wobble emojini aylantiradi va siqadi — varaqdek qalqib tushadi.
+    // shapeFromText matritsasi glyphni yana _emojiShapeScale ga kichraytiradi.
+    final scaleX = (x2 - x1).abs() * 0.1 * _CelebrationState._emojiShapeScale;
+    final scaleY = (y2 - y1).abs() * 0.1 * _CelebrationState._emojiShapeScale;
     if (scaleX <= 0.01 || scaleY <= 0.01) return;
     canvas.save();
     canvas.translate(f.x, f.y);
@@ -444,7 +458,14 @@ class _CelebrationPainter extends CustomPainter {
       image,
       Rect.fromLTWH(0, 0, w, h),
       Rect.fromCenter(center: Offset.zero, width: w, height: h),
-      Paint()..color = Colors.white.withValues(alpha: alpha),
+      // Rang bilan ko'paytirilsa emoji oq siluetga aylanadi; faqat shaffoflik.
+      Paint()
+        ..colorFilter = ColorFilter.matrix(<double>[
+          1, 0, 0, 0, 0,
+          0, 1, 0, 0, 0,
+          0, 0, 1, 0, 0,
+          0, 0, 0, alpha, 0,
+        ]),
     );
     canvas.restore();
   }

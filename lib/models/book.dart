@@ -1,8 +1,9 @@
-enum BookKind { essential, vocabulary, passages }
+enum BookKind { essential, vocabulary, passages, topic }
 
 BookKind bookKindFrom(String? v) => switch (v) {
       'vocabulary' => BookKind.vocabulary,
       'passages' => BookKind.passages,
+      'topic' => BookKind.topic,
       _ => BookKind.essential,
     };
 
@@ -41,12 +42,14 @@ class UnitSummary {
   final int order;
   final String title;
   final int wordCount;
+  final bool closed;
 
   const UnitSummary({
     required this.id,
     required this.order,
     required this.title,
     required this.wordCount,
+    required this.closed,
   });
 
   factory UnitSummary.fromJson(Map<String, dynamic> j) => UnitSummary(
@@ -54,6 +57,7 @@ class UnitSummary {
         order: j['order'] as int,
         title: j['title'] as String,
         wordCount: (j['wordCount'] ?? 0) as int,
+        closed: j['closed'] == true,
       );
 }
 

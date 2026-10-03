@@ -40,24 +40,32 @@ class QuizResponse {
   final Map<String, String> transcriptions;
   // lowercase english word -> part of speech
   final Map<String, String> partsOfSpeech;
+  // lowercase english word -> pronunciation audio
+  final Map<String, String> audioUrls;
 
   const QuizResponse({
     required this.questions,
     required this.transcriptions,
     required this.partsOfSpeech,
+    required this.audioUrls,
   });
 
   factory QuizResponse.fromJson(Map<String, dynamic> j) => QuizResponse(
         questions: ((j['questions'] ?? []) as List)
             .map((e) => QuizQuestion.fromJson(e as Map<String, dynamic>))
             .toList(),
-        transcriptions:
-            ((j['transcriptions'] ?? <String, dynamic>{}) as Map).map(
-          (k, v) => MapEntry(k as String, v as String),
-        ),
-        partsOfSpeech:
-            ((j['partsOfSpeech'] ?? <String, dynamic>{}) as Map).map(
-          (k, v) => MapEntry(k as String, v as String),
-        ),
+        transcriptions: _stringMap(j['transcriptions']),
+        partsOfSpeech: _stringMap(j['partsOfSpeech']),
+        audioUrls: _stringMap(j['audioUrls']),
       );
+}
+
+Map<String, String> _stringMap(dynamic raw) {
+  final out = <String, String>{};
+  if (raw is Map) {
+    raw.forEach((k, v) {
+      if (k is String && v is String && v.isNotEmpty) out[k] = v;
+    });
+  }
+  return out;
 }
